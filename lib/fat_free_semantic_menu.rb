@@ -4,7 +4,8 @@ require 'active_support'
 
 class MenuItem
   include ActionView::Helpers::TagHelper,
-          ActionView::Helpers::UrlHelper
+          ActionView::Helpers::UrlHelper,
+          ActionController::UrlWriter
   
   attr_accessor :children, :link
   
@@ -37,20 +38,38 @@ class MenuItem
   end
   
   def on_current_page?
-    current_page?(@link)
+    if current_tab = controller.instance_variable_get("@current_tab")
+      resp = @title.to_sym == current_tab
+    else
+      link = "" + @link != "/" ? @link.split('/').second : ""
+      resp = link == controller.controller_name
+    end
+    resp
   end
   
   cattr_accessor :controller
   def controller # make it available to current_page? in UrlHelper
     @@controller
   end
+  
+  def add_semantic_menu_levels(menu,menu_items)
+    menu_items.each do |menu_item|
+      m = add_semantic_menu_item(menu,menu_item)
+      add_semantic_menu_levels(m,menu_item[:children]) if menu_item[:children]
+    end
+  end
+
+  def add_semantic_menu_item(menu,menu_item)
+    @controller = controller # ActionView::Helpers::UrlHelper resets @controller to nil, breaking url_for
+    menu.add menu_item[:text], url_for(menu_item[:url].merge(:only_path => true))
+  end
 end
 
-class SemanticMenu < MenuItem
+class FatFreeSemanticMenu < MenuItem
   
   def initialize(controller, opts={},&block)
    @@controller = controller
-    @opts       = {:class => 'menu'}.merge opts
+    @opts       = {:class => 'tabs'}.merge opts
     @level      = 0
     @children   = []
     

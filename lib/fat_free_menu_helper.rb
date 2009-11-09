@@ -14,8 +14,12 @@
 #     <a href="/comments">comments</a>
 #   </li>
 # </ul>
-module MenuHelper
-  def semantic_menu(opts={}, &block)
-    SemanticMenu.new(controller, opts, &block).to_s
+module FatFreeMenuHelper
+
+  def fat_free_semantic_menu(opts={})
+    menu = FatFreeSemanticMenu.new(controller,opts)
+    menu.add_semantic_menu_levels(menu,tabs)
+    menu.to_s
   end
+  
 end
