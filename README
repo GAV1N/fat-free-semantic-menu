@@ -1,54 +1,43 @@
-= SemanticMenu
+= Fat Free Semantic Menu
+Fat Free Semantic Menu is a multi-level menu plugin for use with Fat Free CRM by Michel Dvorkin.  This is based on danielharan's SemanticMenu plugin.
 
-A plugin to make large menus easier to write.
+I haven't customized the CSS yet to actually look decent with Fat Free CRM. 
 
-Supports arbitrarily deep nesting; parents will be marked as 'active' if any of its children are active.
+= Here's how to use this plugin
 
-== Example
+1.  Add the menu items and level 1 and level 2 children to config/settings.yml as follows:
 
-<%= semantic_menu do |root|
-  root.add "overview", root_path
-  root.add "comments", comments_path
-end %>
+:tabs: [
+  { :active : true,  :text : "Dashboard",     :url : { :controller : "/"              } }, 
+  { :active : false, :text : "Tasks",         :url : { :controller : "tasks"          } ,
+    :children : [ { :active : false, :text : "Level 1 child 1",      :url : { :controller : "home"          },
+                    :children : [ { :active : false, :text : "Level 2 child 1",   :url : { :controller : "home"  }},
+                                  { :active : false, :text : "Level 2 child 2",   :url : { :controller : "home"  }} ]
+                  },
+                  { :active : false, :text : "Level 1 child 2",     :url : { :controller : "campaigns"      } } ]
+    },
+  { :active : false, :text : "Campaigns",     :url : { :controller : "campaigns"      } },
+  { :active : false, :text : "Leads",         :url : { :controller : "leads"          } },
+  { :active : false, :text : "Accounts",      :url : { :controller : "accounts"       } },
+  { :active : false, :text : "Contacts",      :url : { :controller : "contacts"       } },
+  { :active : false, :text : "Opportunities", :url : { :controller : "opportunities"  } }
+]
 
-Assuming you are on /comments, the output would be:
+2.  Run 'rake crm:settings:load' to load the settings to the database.
 
-<ul class="menu">
-  <li>
-    <a href="/">overview</a>
-  </li>
-  <li class="active">
-    <a href="/comments">comments</a>
-  </li>
-</ul>
+3.  In app/views/layouts/_tabbed.html.haml, replace the following lines:
 
-add and semantic_menu both take an optional parameter hash, and you can nest the menu as deeply as you want:
+#tabs
+  %ul
+    - tabs.each do |tab|
+      %li= link_to(tab[:text], tab[:url], :class => tab[:active] ? "active" : "")
+    
+With these lines:
 
-<%= semantic_menu :class => 'top_level_nav' do |root|
-  root.add "overview", "root_path"
-  root.add "comments", "comments_path", :class => 'button' do |comments|
-    comments.add "My Comments", "my_comments_path"
-    comments.add "Recent",      "recent_comments_path"
-  end
-end %>
+#tabs
+  = fat_free_semantic_menu
 
-This would look like this:
+4.  Start up your server and see the new multi-level menu.  Obviously, we need some CSS work to make this look alright.  But this is a start...
 
-<ul class="top_level_nav">
-  <li>
-    <a href="root_path">overview</a>
-  </li>
-  <li class="active">
-    <a href="comments_path" class="button">comments</a>
-    <ul class="menu_level_1">
-      <li class="active">
-        <a href="my_comments_path">My Comments</a>
-      </li>
-      <li>
-        <a href="recent_comments_path">Recent</a>
-      </li>
-    </ul>
-  </li>
-</ul>
-
-Copyright (c) 2008 Daniel Haran, released under the MIT license
+The plugin sets the active tab based on the @current_tab instance variable set within the controller.  If @current_tab is nil, it attempts to find the current tab by matching the request URL to each menu item's link.
+ 
