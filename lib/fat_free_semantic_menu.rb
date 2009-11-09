@@ -39,10 +39,10 @@ class MenuItem
   
   def on_current_page?
     if current_tab = controller.instance_variable_get("@current_tab")
-      resp = @title.to_sym == current_tab
+      resp = @title.downcase.to_sym == current_tab
     else
       link = "" + @link != "/" ? @link.split('/').second : ""
-      resp = link == controller.controller_name
+      resp = link.downcase == controller.controller_name
     end
     resp
   end
